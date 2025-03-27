@@ -25,3 +25,6 @@ loguru==0.7.2
 # Testing
 pytest==7.4.2
 pytest-cov==4.1.1
+
+# UI
+streamlit==1.31.0

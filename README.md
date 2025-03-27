@@ -1,60 +1,128 @@
 # Text2SQL: Multi-Agent SQL Query Generation
 
-A sophisticated natural language to SQL query conversion system using a multi-agent architecture.
+A modern web application that converts natural language queries into SQL statements using a multi-agent approach. Built with Next.js, Node.js, and PostgreSQL.
 
-## Overview
+## Features
 
-Text2SQL converts natural language queries into precise SQL statements using a three-agent pipeline:
+- Natural language to SQL query conversion
+- Real-time database connection management
+- Interactive SQL query execution
+- Schema visualization
+- Paginated results for large datasets
+- Modern, responsive UI
+- Connection status monitoring
 
-1. **Query Agent**: Decomposes natural language into structured components
-2. **Context Agent**: Enriches queries with database metadata through vector search
-3. **Schema Agent**: Generates and validates SQL with iterative correction
+## Tech Stack
 
-## Architecture
+### Frontend
+- Next.js 14
+- TypeScript
+- Tailwind CSS
+- React Context API
+- Axios
 
-The system uses a modular architecture as detailed in [architecture.md](architecture.md):
+### Backend
+- Node.js
+- Express.js
+- PostgreSQL
+- Redis (for large result caching)
+- Knex.js (SQL query builder)
 
-- **Meta Store**: Central repository for database metadata, sample data, and SQL examples
-- **Vector Embeddings**: For semantic matching of queries to database elements
-- **Iterative Validation**: Multiple checkpoints to ensure accurate SQL generation
+## Prerequisites
+
+- Node.js (v18 or higher)
+- PostgreSQL
+- Redis (optional, for large result caching)
+- npm or yarn
 
 ## Installation
 
+1. Clone the repository:
 ```bash
-# Clone the repository
 git clone https://github.com/yourusername/text2sql.git
 cd text2sql
-
-# Create a virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
 ```
+
+2. Install dependencies:
+```bash
+# Install frontend dependencies
+cd frontend
+npm install
+
+# Install backend dependencies
+cd ../backend
+npm install
+```
+
+3. Set up environment variables:
+
+Frontend (.env.local):
+```env
+NEXT_PUBLIC_API_BASE_URL=http://localhost:5001/api
+```
+
+Backend (.env):
+```env
+PORT=5001
+NODE_ENV=development
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=your_database
+DB_USER=your_username
+DB_PASSWORD=your_password
+REDIS_URL=redis://localhost:6379
+```
+
+4. Create the database:
+```bash
+psql -U postgres -c "CREATE DATABASE your_database;"
+```
+
+## Development
+
+1. Start the backend server:
+```bash
+cd backend
+npm run dev
+```
+
+2. Start the frontend development server:
+```bash
+cd frontend
+npm run dev
+```
+
+3. Access the application:
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:5001
 
 ## Project Structure
 
 ```
 text2sql/
-├── agents/                      # Contains the three main agent components
-│   ├── query_agent/             # Handles query decomposition
-│   ├── context_agent/           # Manages context enrichment
-│   └── schema_agent/            # Performs SQL generation and validation
-├── metastore/                   # Stores and manages all metadata
-├── templates/                   # SQL templates for query generation
-├── utils/                       # Shared utilities and helper functions
-├── config/                      # Configuration files
-├── tests/                       # Unit and integration tests
-├── examples/                    # Example queries and results
-└── docs/                        # Documentation files
+├── frontend/                 # Next.js frontend application
+│   ├── src/
+│   │   ├── app/            # Next.js app router pages
+│   │   ├── components/     # Reusable React components
+│   │   └── contexts/       # React context providers
+│   └── public/             # Static assets
+├── backend/                 # Node.js backend application
+│   ├── config/            # Configuration files
+│   ├── controllers/       # Route controllers
+│   ├── services/         # Business logic
+│   ├── utils/           # Utility functions
+│   └── routes/          # API routes
+└── README.md
 ```
 
-For a detailed description of each component, see [docs/project_structure.md](docs/project_structure.md).
+## API Endpoints
 
-## Usage
-
-Coming soon.
+- `GET /api/db/test-connection` - Test database connection
+- `GET /api/db/tables` - Get all tables
+- `GET /api/db/schema-info` - Get database schema information
+- `POST /api/db/execute` - Execute SQL query
+- `GET /api/db/query-results/:queryId/:page` - Get paginated query results
+- `POST /api/db/disconnect` - Disconnect from database
 
 ## Contributing
 
@@ -70,5 +138,6 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Acknowledgments
 
-- This architecture is based on advancements in LLMs and RAG systems
-- Inspired by challenges in making database querying accessible to non-technical users
+- Next.js team for the amazing framework
+- PostgreSQL team for the robust database
+- All contributors and maintainers of the open-source libraries used in this project
