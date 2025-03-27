@@ -101,25 +101,42 @@ class DatabaseService {
       const db = this.dbConnection.getKnex();
       const result = await db.raw(query);
       
+      console.log('Query result:', {
+        rowCount: result.rows.length,
+        fieldCount: result.fields.length,
+        isLargeResult: result.rows.length > this.LARGE_RESULT_THRESHOLD
+      });
+      
       // If results are larger than threshold, store in Redis
       if (result.rows.length > this.LARGE_RESULT_THRESHOLD) {
         const queryId = Date.now().toString();
-        await redisService.set(`query:${queryId}`, JSON.stringify(result.rows));
+        // Store both rows and fields in Redis
+        const dataToStore = {
+          rows: result.rows,
+          fields: result.fields.map(field => ({ name: field.name }))
+        };
+        console.log('Storing large result in Redis with queryId:', queryId);
+        await redisService.set(`query:${queryId}`, JSON.stringify(dataToStore));
         
-        return {
+        const response = {
           isLargeResult: true,
           queryId,
-          rowCount: result.rows.length
+          rowCount: result.rows.length,
+          fields: result.fields.map(field => ({ name: field.name }))
         };
+        console.log('Returning large result response:', response);
+        return response;
       }
       
       // For small results, return directly
-      return {
+      const response = {
         isLargeResult: false,
         rows: result.rows,
         fields: result.fields.map(field => ({ name: field.name })),
         rowCount: result.rows.length
       };
+      console.log('Returning small result response:', response);
+      return response;
     } catch (error) {
       console.error('Error executing query:', error);
       throw error;
@@ -132,17 +149,41 @@ class DatabaseService {
       const start = page * pageSize;
       const end = start + pageSize;
       
+      console.log('Fetching page:', page, 'for queryId:', queryId);
       const result = await redisService.get(`query:${queryId}`);
       if (!result) {
+        console.error('No data found in Redis for queryId:', queryId);
         throw new Error('Query results not found');
       }
       
-      const rows = JSON.parse(result);
+      console.log('Raw Redis result:', result.substring(0, 200) + '...'); // Log first 200 chars
+      const data = JSON.parse(result);
+      console.log('Parsed data structure:', {
+        hasRows: !!data.rows,
+        hasFields: !!data.fields,
+        rowCount: data.rows?.length,
+        fieldCount: data.fields?.length,
+        firstRow: data.rows?.[0],
+        fields: data.fields
+      });
+      
+      const rows = data.rows;
+      const fields = data.fields;
       const totalRows = rows.length;
       const totalPages = Math.ceil(totalRows / pageSize);
       
-      return {
-        results: rows.slice(start, end),
+      const slicedRows = rows.slice(start, end);
+      console.log('Sliced rows:', {
+        start,
+        end,
+        totalRows,
+        slicedCount: slicedRows.length,
+        firstSlicedRow: slicedRows[0]
+      });
+      
+      const response = {
+        results: slicedRows,
+        fields: fields,
         metadata: {
           totalRows,
           totalPages,
@@ -152,6 +193,14 @@ class DatabaseService {
           hasPreviousPage: start > 0
         }
       };
+      
+      console.log('Final response:', {
+        resultCount: response.results.length,
+        fieldCount: response.fields.length,
+        metadata: response.metadata
+      });
+      
+      return response;
     } catch (error) {
       console.error('Error fetching query page:', error);
       throw error;
